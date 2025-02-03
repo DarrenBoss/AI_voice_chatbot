@@ -239,9 +239,11 @@ if __name__ == "__main__":
 
 
     openai.api_key = OPENAI_API_KEY
-    models = openai.models.list()
-    for model in models['data']:
-        print(model['id'])
+    models = openai.Model.list()
+
+        # Iterate over models directly
+    for model in models:
+        print(model)
     
     print(
         'Our recommendation is to always disclose the use of AI for outbound or inbound calls.\n'
