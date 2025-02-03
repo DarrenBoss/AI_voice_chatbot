@@ -238,10 +238,10 @@ if __name__ == "__main__":
     phone_number = args.call
 
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    models = client.models.list()
-    for model in models.data:
-        print(model)
+    #client = OpenAI(api_key=OPENAI_API_KEY)
+    #models = client.models.list()
+    #for model in models.data:
+    #    print(model)
     
     print(
         'Our recommendation is to always disclose the use of AI for outbound or inbound calls.\n'
