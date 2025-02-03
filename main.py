@@ -235,7 +235,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     phone_number = args.call
-    
+
+    import openai
+    openai.api_key = OPENAI_API_KEY
     models = openai.models.list()
     for model in models['data']:
         print(model['id'])
