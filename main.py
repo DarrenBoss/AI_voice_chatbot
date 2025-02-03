@@ -8,10 +8,13 @@ import re
 import openai
 import uvicorn
 import websockets
+from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.websockets import WebSocketDisconnect
 from twilio.rest import Client
+
+load_dotenv()
 
 # Configuration
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
