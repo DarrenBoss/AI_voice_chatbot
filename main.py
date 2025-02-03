@@ -8,6 +8,7 @@ import re
 from openai import OpenAI
 import uvicorn
 import websockets
+from websockets.client import connect
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import JSONResponse
