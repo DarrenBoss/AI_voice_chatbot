@@ -5,7 +5,7 @@ import json
 import os
 import re
 
-import openai
+from openai import OpenAI
 import uvicorn
 import websockets
 from dotenv import load_dotenv
@@ -238,11 +238,9 @@ if __name__ == "__main__":
     phone_number = args.call
 
 
-    openai.api_key = OPENAI_API_KEY
-    models = openai.Model.list()
-
-        # Iterate over models directly
-    for model in models:
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    models = client.models.list()
+    for model in models.data:
         print(model)
     
     print(
