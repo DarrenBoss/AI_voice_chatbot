@@ -8,7 +8,7 @@ import re
 import uvicorn
 import websockets
 from dotenv import load_dotenv
-from fastapi import BackgroundTasks, FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.websockets import WebSocketDisconnect
 from twilio.rest import Client
@@ -62,9 +62,6 @@ async def handle_media_stream(websocket: WebSocket):
     await websocket.accept()
     print("WebSocket accepted")
     models = openai.models.list()
-
-    for model in models['data']:
-        print(model['id'])
     
     async with websockets.connect(
             'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
@@ -238,6 +235,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     phone_number = args.call
+    for model in models['data']:
+        print(model['id'])
     print(
         'Our recommendation is to always disclose the use of AI for outbound or inbound calls.\n'
         'Reminder: All of the rules of TCPA apply even if a call is made by AI.\n'
