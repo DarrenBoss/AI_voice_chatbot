@@ -61,6 +61,10 @@ async def handle_media_stream(websocket: WebSocket):
     print(f"WebSocket scope: {websocket.scope}") 
     await websocket.accept()
     print("WebSocket accepted")
+    models = openai.models.list()
+
+    for model in models['data']:
+        print(model['id'])
     
     async with websockets.connect(
             'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
