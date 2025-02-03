@@ -5,15 +5,13 @@ import json
 import os
 import re
 
+import openai
 import uvicorn
 import websockets
-from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.websockets import WebSocketDisconnect
 from twilio.rest import Client
-
-load_dotenv()
 
 # Configuration
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
@@ -236,7 +234,7 @@ if __name__ == "__main__":
 
     phone_number = args.call
 
-    import openai
+
     openai.api_key = OPENAI_API_KEY
     models = openai.models.list()
     for model in models['data']:
