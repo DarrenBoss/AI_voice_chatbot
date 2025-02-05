@@ -77,16 +77,15 @@ async def initiate_call(call_request: CallRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+# Store active WebSocket connections
+active_connections = []
+
 @app.websocket('/media-stream')
 async def handle_media_stream(websocket: WebSocket):
     """Handle WebSocket connections between Twilio and OpenAI."""
-    print("Client connected")
-    print(f"WebSocket scope: {websocket.scope}") 
     await websocket.accept()
-    print("WebSocket accepted")
-    
-    # Store websocket connection for broadcasting
-    broadcast_transcript.websocket = websocket
+    active_connections.append(websocket)
+    print(f"Client connected. Total connections: {len(active_connections)}")
 
 
     async with connect(
@@ -253,16 +252,18 @@ async def log_call_sid(call_sid):
 
 async def broadcast_transcript(message):
     """Broadcast the transcript to all connected clients."""
-    try:
-        data = {
-            "type": "transcript",
-            "text": message
-        }
-        if hasattr(broadcast_transcript, 'websocket'):
-            await broadcast_transcript.websocket.send_text(json.dumps(data))
+    data = {
+        "type": "transcript",
+        "text": message
+    }
+    
+    for connection in active_connections.copy():
+        try:
+            await connection.send_text(json.dumps(data))
             print(f"Sent transcript: {message}")
-    except Exception as e:
-        print(f"Error broadcasting transcript: {e}")
+        except Exception as e:
+            print(f"Error sending to client: {e}")
+            active_connections.remove(connection)
 
 
 if __name__ == "__main__":

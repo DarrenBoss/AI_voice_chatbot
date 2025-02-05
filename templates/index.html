@@ -100,7 +100,9 @@
                 socket.close();
             }
             
-            socket = new WebSocket(`wss://${window.location.host}/media-stream`);
+            // Use the same protocol (ws/wss) as the page
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            socket = new WebSocket(`${protocol}//${window.location.host}/media-stream`);
             
             socket.onmessage = function(event) {
                 const data = JSON.parse(event.data);
