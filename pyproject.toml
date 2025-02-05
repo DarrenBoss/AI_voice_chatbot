@@ -8,6 +8,9 @@ authors = ["Your Name <you@example.com>"]
 python = ">=3.10.0,<3.12"
 fastapi = "^0.112.0"
 uvicorn = "0.23.2"
+websockets = "^12.0"
+python-dotenv = "^1.0.0"
+twilio = "^8.12.0"
 
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
