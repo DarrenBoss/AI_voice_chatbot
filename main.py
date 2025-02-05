@@ -84,6 +84,9 @@ async def handle_media_stream(websocket: WebSocket):
     print(f"WebSocket scope: {websocket.scope}") 
     await websocket.accept()
     print("WebSocket accepted")
+    
+    # Store websocket connection for broadcasting
+    broadcast_transcript.websocket = websocket
 
 
     async with connect(
@@ -256,7 +259,8 @@ async def broadcast_transcript(message):
             "text": message
         }
         if hasattr(broadcast_transcript, 'websocket'):
-            await broadcast_transcript.websocket.send_json(data)
+            await broadcast_transcript.websocket.send_text(json.dumps(data))
+            print(f"Sent transcript: {message}")
     except Exception as e:
         print(f"Error broadcasting transcript: {e}")
 
