@@ -100,9 +100,11 @@
                 socket.close();
             }
             
-            // Use the same protocol (ws/wss) as the page
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            socket = new WebSocket(`${protocol}//${window.location.host}/media-stream`);
+            // Always use secure WebSocket when page is loaded over HTTPS
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/media-stream`;
+            console.log('Connecting to WebSocket:', wsUrl);
+            socket = new WebSocket(wsUrl);
             
             socket.onmessage = function(event) {
                 const data = JSON.parse(event.data);
