@@ -10,9 +10,11 @@ import uvicorn
 import websockets
 from websockets.client import connect
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, WebSocket, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocketDisconnect
+from pydantic import BaseModel
 from twilio.rest import Client
 
 load_dotenv()
@@ -40,6 +42,7 @@ LOG_EVENT_TYPES = [
 ]
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and PHONE_NUMBER_FROM
         and OPENAI_API_KEY):
@@ -51,9 +54,27 @@ if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and PHONE_NUMBER_FROM
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 
-@app.get('/', response_class=JSONResponse)
-async def index_page():
-    return {"message": "Twilio Media Stream Server is running!"}
+class CallRequest(BaseModel):
+    phone_number: str
+    instructions: str = ""
+
+@app.get('/', response_class=HTMLResponse)
+async def index_page(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post('/make_call')
+async def initiate_call(call_request: CallRequest):
+    try:
+        if call_request.instructions:
+            global SYSTEM_MESSAGE
+            SYSTEM_MESSAGE = call_request.instructions
+            
+        await make_call(call_request.phone_number)
+        return {"message": f"Call initiated to {call_request.phone_number}"}
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.websocket('/media-stream')
