@@ -5,17 +5,15 @@ import json
 import os
 import re
 
-
 import uvicorn
-import websockets
-from websockets.client import connect
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, Request
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi import FastAPI, Request, WebSocket
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocketDisconnect
 from pydantic import BaseModel
 from twilio.rest import Client
+from websockets.client import connect
 
 load_dotenv()
 
@@ -173,9 +171,7 @@ async def send_initial_conversation_item(openai_ws):
                 "type":
                 "input_text",
                 "text":
-                ("Greet the user with 'Hello there! I am an AI voice assistant powered by "
-                 "Twilio and the OpenAI Realtime API. You can ask me for facts, jokes, or "
-                 "anything you can imagine. How can I help you?'")
+                ("Greet the user with 'Hello there! I am Darjans personal assistant. How can I help you today?'")
             }]
         }
     }
