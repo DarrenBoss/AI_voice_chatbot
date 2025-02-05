@@ -5,7 +5,7 @@ import json
 import os
 import re
 
-from openai import OpenAI
+
 import uvicorn
 import websockets
 from websockets.client import connect
@@ -240,10 +240,6 @@ if __name__ == "__main__":
     phone_number = args.call
 
 
-    #client = OpenAI(api_key=OPENAI_API_KEY)
-    #models = client.models.list()
-    #for model in models.data:
-    #    print(model)
     
     print(
         'Our recommendation is to always disclose the use of AI for outbound or inbound calls.\n'
