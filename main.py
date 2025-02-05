@@ -261,7 +261,6 @@ if __name__ == "__main__":
     phone_number = args.call
 
 
-    
     print(
         'Our recommendation is to always disclose the use of AI for outbound or inbound calls.\n'
         'Reminder: All of the rules of TCPA apply even if a call is made by AI.\n'
