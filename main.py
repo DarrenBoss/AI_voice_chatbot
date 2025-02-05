@@ -123,24 +123,25 @@ async def handle_media_stream(websocket: WebSocket):
             nonlocal stream_sid
             try:
                 async for openai_message in openai_ws:
-                    response = json.loads(openai_message)
-                    print("Received message type:", response['type'])
-                    
-                    if response['type'] == 'response.audio_transcript.delta' and response.get('delta', {}).get('text'):
-                        print("\n=== USER SPEAKING ===")
-                        print(response['delta']['text'])
-                        print("===================\n")
-                        await broadcast_transcript(f"User: {response['delta']['text']}")
-                    elif response['type'] == 'response.content.text' and response.get('text'):
-                        print("\n=== AI SPEAKING ===")
-                        print(response['text'])
-                        print("=================\n")
-                        await broadcast_transcript(f"AI: {response['text']}")
-                    elif response['type'] == 'response.audio.delta' and response.get('delta'):
-                        try:
-                            audio_payload = base64.b64encode(
-                                base64.b64decode(
-                                    response['delta'])).decode('utf-8')
+                    try:
+                        response = json.loads(openai_message)
+                        print("Received message type:", response['type'])
+                        
+                        if response.get('type') == 'response.audio_transcript.delta' and response.get('delta', {}).get('text'):
+                            print("\n=== USER SPEAKING ===")
+                            print(response['delta']['text'])
+                            print("===================\n")
+                            await broadcast_transcript(f"User: {response['delta']['text']}")
+                        elif response.get('type') == 'response.content.text' and response.get('text'):
+                            print("\n=== AI SPEAKING ===")
+                            print(response['text'])
+                            print("=================\n")
+                            await broadcast_transcript(f"AI: {response['text']}")
+                        elif response.get('type') == 'response.audio.delta' and response.get('delta'):
+                            try:
+                                audio_payload = base64.b64encode(
+                                    base64.b64decode(
+                                        response['delta'])).decode('utf-8')
                             audio_delta = {
                                 "event": "media",
                                 "streamSid": stream_sid,
