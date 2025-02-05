@@ -152,6 +152,8 @@ async def handle_media_stream(websocket: WebSocket):
                                 await websocket.send_json(audio_delta)
                             except Exception as e:
                                 print(f"Error processing audio data: {e}")
+                    except Exception as e:
+                        print(f"Error processing OpenAI message: {e}")
             except Exception as e:
                 print(f"Error in send_to_twilio: {e}")
 
