@@ -250,9 +250,15 @@ async def log_call_sid(call_sid):
 
 async def broadcast_transcript(message):
     """Broadcast the transcript to all connected clients."""
-    #  In a real application, you would iterate through a list of connected WebSocket clients
-    # and send the message to each one individually.  This example omits that for brevity.
-    print(f"Transcript update: {message}")
+    try:
+        data = {
+            "type": "transcript",
+            "text": message
+        }
+        if hasattr(broadcast_transcript, 'websocket'):
+            await broadcast_transcript.websocket.send_json(data)
+    except Exception as e:
+        print(f"Error broadcasting transcript: {e}")
 
 
 if __name__ == "__main__":

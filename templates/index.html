@@ -93,7 +93,7 @@
 
     <script>
         // Connect to WebSocket for transcript updates
-        const socket = new WebSocket(`ws://${window.location.host}/media-stream`);
+        const socket = new WebSocket(`wss://${window.location.host}/media-stream`);
         const transcript = document.getElementById('transcript');
         
         socket.onmessage = function(event) {
