@@ -127,9 +127,8 @@ async def handle_media_stream(websocket: WebSocket):
                         
                         if response['type'] == 'response.audio_transcript.delta':
                             print("\n=== USER SPEAKING ===")
-                            print(response['delta']['text'])
-                            print("===================\n")
-                            await broadcast_transcript(f"User: {response['delta']['text']}")
+                            print(response['delta'])
+                            await broadcast_transcript(f"User: {response['delta']}")
                         elif response['type'] == 'response.content.text' and 'text' in response:
                             print("\n=== AI SPEAKING ===")
                             print(response['text'])
