@@ -124,11 +124,16 @@ async def handle_media_stream(websocket: WebSocket):
             try:
                 async for openai_message in openai_ws:
                     response = json.loads(openai_message)
-                    # Only log the actual conversation text
+                    print("Received message type:", response['type'])
+                    
                     if response['type'] == 'response.content.text' and response.get('text'):
-                        print("\nAI:", response['text'])
-                    elif response['type'] == 'conversation.item.text' and response.get('text'):
-                        print("\nUser:", response['text'])
+                        print("\n=== AI SPEAKING ===")
+                        print(response['text'])
+                        print("==================\n")
+                    elif response['type'] == 'transcript' and response.get('text'):
+                        print("\n=== USER SPEAKING ===")
+                        print(response['text'])
+                        print("====================\n")
                     elif response['type'] == 'response.audio.delta' and response.get('delta'):
                         try:
                             audio_payload = base64.b64encode(
