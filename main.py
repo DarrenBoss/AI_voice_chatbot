@@ -142,14 +142,14 @@ async def handle_media_stream(websocket: WebSocket):
                                 audio_payload = base64.b64encode(
                                     base64.b64decode(
                                         response['delta'])).decode('utf-8')
-                            audio_delta = {
-                                "event": "media",
-                                "streamSid": stream_sid,
-                                "media": {
-                                    "payload": audio_payload
+                                audio_delta = {
+                                    "event": "media",
+                                    "streamSid": stream_sid,
+                                    "media": {
+                                        "payload": audio_payload
+                                    }
                                 }
-                            }
-                            await websocket.send_json(audio_delta)
+                                await websocket.send_json(audio_delta)
                         except Exception as e:
                             print(f"Error processing audio data: {e}")
             except Exception as e:
