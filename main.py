@@ -68,7 +68,7 @@ async def initiate_call(call_request: CallRequest):
         if call_request.instructions:
             global SYSTEM_MESSAGE
             SYSTEM_MESSAGE = call_request.instructions
-            
+
         await make_call(call_request.phone_number)
         return {"message": f"Call initiated to {call_request.phone_number}"}
     except ValueError as e:
@@ -84,8 +84,8 @@ async def handle_media_stream(websocket: WebSocket):
     print(f"WebSocket scope: {websocket.scope}") 
     await websocket.accept()
     print("WebSocket accepted")
-    
-    
+
+
     async with connect(
             'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
             extra_headers=[
@@ -126,9 +126,9 @@ async def handle_media_stream(websocket: WebSocket):
                         print(f"Received event: {response['type']}", response)
                     if response['type'] == 'session.updated':
                         print("Session updated successfully:", response)
-                    if response[
-                            'type'] == 'response.audio.delta' and response.get(
-                                'delta'):
+                    if response['type'] == 'response.content.text' and response.get('text'):
+                        await broadcast_transcript(f"AI: {response['text']}")
+                    elif response['type'] == 'response.audio.delta' and response.get('delta'):
                         try:
                             audio_payload = base64.b64encode(
                                 base64.b64decode(
@@ -247,6 +247,12 @@ async def make_call(phone_number_to_call: str):
 async def log_call_sid(call_sid):
     """Log the call SID."""
     print(f"Call started with SID: {call_sid}")
+
+async def broadcast_transcript(message):
+    """Broadcast the transcript to all connected clients."""
+    #  In a real application, you would iterate through a list of connected WebSocket clients
+    # and send the message to each one individually.  This example omits that for brevity.
+    print(f"Transcript update: {message}")
 
 
 if __name__ == "__main__":

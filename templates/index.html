@@ -92,6 +92,18 @@
     </div>
 
     <script>
+        // Connect to WebSocket for transcript updates
+        const socket = new WebSocket(`ws://${window.location.host}/media-stream`);
+        const transcript = document.getElementById('transcript');
+        
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'transcript') {
+                transcript.innerHTML += `<p>${data.text}</p>`;
+                transcript.scrollTop = transcript.scrollHeight;
+            }
+        };
+        
         async function makeCall(event) {
             event.preventDefault();
             const phone = document.getElementById('phone').value;
