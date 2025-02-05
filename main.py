@@ -124,8 +124,8 @@ async def handle_media_stream(websocket: WebSocket):
                     try:
                         response = json.loads(openai_message)
                         print("Received message type:", response['type'])
-                        
-                        if response['type'] == 'response.audio_transcript.delta':
+
+                        if response['type'] == 'response.audio_transcript.delta' and 'delta' in response:
                             print("\n=== USER SPEAKING ===")
                             print(response['delta'])
                             await broadcast_transcript(f"User: {response['delta']}")
@@ -260,7 +260,7 @@ async def broadcast_transcript(message):
         "type": "transcript",
         "text": message
     }
-    
+
     for connection in active_connections.copy():
         try:
             await connection.send_text(json.dumps(data))
