@@ -154,7 +154,6 @@ async def handle_media_stream(websocket: WebSocket):
                                 print(f"Error processing audio data: {e}")
             except Exception as e:
                 print(f"Error in send_to_twilio: {e}")
-                print(f"Error in send_to_twilio: {e}")
 
         await asyncio.gather(receive_from_twilio(), send_to_twilio())
 
