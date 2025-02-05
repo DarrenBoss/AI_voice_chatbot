@@ -92,17 +92,30 @@
     </div>
 
     <script>
-        // Connect to WebSocket for transcript updates
-        const socket = new WebSocket(`wss://${window.location.host}/media-stream`);
+        let socket = null;
         const transcript = document.getElementById('transcript');
         
-        socket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.type === 'transcript') {
-                transcript.innerHTML += `<p>${data.text}</p>`;
-                transcript.scrollTop = transcript.scrollHeight;
+        function connectWebSocket() {
+            if (socket) {
+                socket.close();
             }
-        };
+            
+            socket = new WebSocket(`wss://${window.location.host}/media-stream`);
+            
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'transcript') {
+                    transcript.innerHTML += `<p>${data.text}</p>`;
+                    transcript.scrollTop = transcript.scrollHeight;
+                }
+            };
+            
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+            
+            return socket;
+        }
         
         async function makeCall(event) {
             event.preventDefault();
@@ -122,6 +135,9 @@
             submitButton.textContent = 'Initiating Call...';
             
             try {
+                // Connect WebSocket before making the call
+                connectWebSocket();
+                
                 const response = await fetch('/make_call', {
                     method: 'POST',
                     headers: {
