@@ -26,7 +26,7 @@ raw_domain = os.getenv('DOMAIN', '')
 DOMAIN = re.sub(r'(^\w+:|^)\/\/|\/+$', '',raw_domain)  # Strip protocols and trailing slashes from DOMAIN
 
 
-PORT = int(os.getenv('PORT', 6060))
+PORT = int(os.getenv('PORT', 8000))
 SYSTEM_MESSAGE = (
     "You are a helpful and bubbly AI assistant who loves to chat about "
     "anything the user is interested in and is prepared to offer them facts. "
