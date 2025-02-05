@@ -155,12 +155,14 @@
                 
                 const result = await response.json();
                 if (response.ok) {
-                    alert(result.message);
+                    transcript.innerHTML += `<p><em>${result.message}</em></p>`;
                 } else {
-                    alert('Error: ' + result.error);
+                    transcript.innerHTML += `<p style="color: red;"><em>Error: ${result.error}</em></p>`;
                 }
+                transcript.scrollTop = transcript.scrollHeight;
             } catch (error) {
-                alert('Error making call: ' + error);
+                transcript.innerHTML += `<p style="color: red;"><em>Error making call: ${error}</em></p>`;
+                transcript.scrollTop = transcript.scrollHeight;
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = 'Make Call';
