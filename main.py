@@ -102,17 +102,19 @@ async def handle_media_stream(websocket: WebSocket):
             try:
                 async for message in websocket.iter_text():
                     data = json.loads(message)
+                    print(f"[receive_from_twilio] Received message keys: {list(data.keys())}")
                     if data['event'] == 'media' and openai_ws.open:
                         audio_append = {
                             "type": "input_audio_buffer.append",
                             "audio": data['media']['payload']
                         }
+                        print(f"[receive_from_twilio] Sending to OpenAI keys: {list(audio_append.keys())}")
                         await openai_ws.send(json.dumps(audio_append))
                     elif data['event'] == 'start':
                         stream_sid = data['start']['streamSid']
-                        print(f"Incoming stream has started {stream_sid}")
+                        print(f"[receive_from_twilio] Stream started: {stream_sid}")
             except WebSocketDisconnect:
-                print("Client disconnected.")
+                print("[receive_from_twilio] Client disconnected")
                 if openai_ws.open:
                     await openai_ws.close()
 
@@ -123,7 +125,7 @@ async def handle_media_stream(websocket: WebSocket):
                 async for openai_message in openai_ws:
                     try:
                         response = json.loads(openai_message)
-                        print("Received message type:", response['type'])
+                        print(f"[send_to_twilio] Received from OpenAI keys: {list(response.keys())}")
 
                         if response['type'] == 'response.audio_transcript.delta' and 'delta' in response:
                             print("\n=== USER SPEAKING ===")
