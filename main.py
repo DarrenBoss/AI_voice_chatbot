@@ -102,6 +102,9 @@ async def handle_media_stream(websocket: WebSocket):
             try:
                 async for message in websocket.iter_text():
                     data = json.loads(message)
+                    print("\n=== RECEIVED FROM TWILIO ===")
+                    print(json.dumps(data, indent=2))
+                    print("==============================\n")
                     if data['event'] == 'media' and openai_ws.open:
                         audio_append = {
                             "type": "input_audio_buffer.append",
@@ -129,18 +132,17 @@ async def handle_media_stream(websocket: WebSocket):
                         print("==============================\n")
                         
                         if response['type'] == 'response.audio_transcript.delta':
-                            print("\n=== USER SPEAKING ===")
+                            #print("\n=== USER SPEAKING ===")
                             #print(response['delta']['text'])
-                            print(json.dumps(response, indent=2))
-                            print("===================\n")
-                            #await broadcast_transcript(f"User: {response['delta']['text']}")
+                            #print(json.dumps(response, indent=2))
+                            #print("===================\n")
+                            await broadcast_transcript(f"User: {response['delta']['text']}")
                         elif response['type'] == 'response.content.text' and 'text' in response:
                             print("\n=== AI SPEAKING ===")
                             print(response['text'])
                             print("=================\n")
                             await broadcast_transcript(f"AI: {response['text']}")
                         elif response['type'] == 'response.audio.delta' and 'delta' in response:
-                            print("--------elif part")
                             try:
                                 audio_payload = base64.b64encode(
                                     base64.b64decode(
