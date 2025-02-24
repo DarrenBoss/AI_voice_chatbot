@@ -99,6 +99,7 @@ async def handle_media_stream(websocket: WebSocket):
         async def receive_from_twilio():
             """Receive audio data from Twilio and send it to the OpenAI Realtime API."""
             nonlocal stream_sid
+            print("HEre")
             try:
                 async for message in websocket.iter_text():
                     data = json.loads(message)
