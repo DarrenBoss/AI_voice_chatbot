@@ -5,15 +5,17 @@ import json
 import os
 import re
 
+
 import uvicorn
+import websockets
+from websockets.client import connect
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, WebSocket
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, WebSocket, Request
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocketDisconnect
 from pydantic import BaseModel
 from twilio.rest import Client
-from websockets.client import connect
 
 load_dotenv()
 
@@ -66,7 +68,7 @@ async def initiate_call(call_request: CallRequest):
         if call_request.instructions:
             global SYSTEM_MESSAGE
             SYSTEM_MESSAGE = call_request.instructions
-
+            
         await make_call(call_request.phone_number)
         return {"message": f"Call initiated to {call_request.phone_number}"}
     except ValueError as e:
@@ -75,17 +77,15 @@ async def initiate_call(call_request: CallRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
-# Store active WebSocket connections
-active_connections = []
-
 @app.websocket('/media-stream')
 async def handle_media_stream(websocket: WebSocket):
     """Handle WebSocket connections between Twilio and OpenAI."""
+    print("Client connected")
+    print(f"WebSocket scope: {websocket.scope}") 
     await websocket.accept()
-    active_connections.append(websocket)
-    print(f"Client connected. Total connections: {len(active_connections)}")
-
-
+    print("WebSocket accepted")
+    
+    
     async with connect(
             'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
             extra_headers=[
@@ -102,9 +102,7 @@ async def handle_media_stream(websocket: WebSocket):
             try:
                 async for message in websocket.iter_text():
                     data = json.loads(message)
-                    print("\n=== RECEIVED FROM TWILIO ===")
-                    print(json.dumps(data, indent=2))
-                    print("==============================\n")
+                    print(f"Received message from Twilio: {data}")
                     if data['event'] == 'media' and openai_ws.open:
                         audio_append = {
                             "type": "input_audio_buffer.append",
@@ -124,35 +122,28 @@ async def handle_media_stream(websocket: WebSocket):
             nonlocal stream_sid
             try:
                 async for openai_message in openai_ws:
-                    try:
-                        response = json.loads(openai_message)
-                        #print("\n=== RECEIVED OPENAI MESSAGE ===")
-                        #print(json.dumps(response, indent=2)) 
-                        #print(response["type"])
-                        #print("==============================\n")
-                        
-                        if not response['type'].endswith('delta'):
-                            #print("\n=== USER SPEAKING ===")
-                            #print(json.dumps(response, indent=2))
-                            #print("===================\n")
-                            await broadcast_transcript(f"User: {response['delta']['text']}")
-                        elif response['type'] == 'response.audio.delta' and 'delta' in response:
-                            try:
-                                audio_payload = base64.b64encode(
-                                    base64.b64decode(
-                                        response['delta'])).decode('utf-8')
-                                audio_delta = {
-                                    "event": "media",
-                                    "streamSid": stream_sid,
-                                    "media": {
-                                        "payload": audio_payload
-                                    }
+                    response = json.loads(openai_message)
+                    if response['type'] in LOG_EVENT_TYPES:
+                        print(f"Received event: {response['type']}", response)
+                    if response['type'] == 'session.updated':
+                        print("Session updated successfully:", response)
+                    if response[
+                            'type'] == 'response.audio.delta' and response.get(
+                                'delta'):
+                        try:
+                            audio_payload = base64.b64encode(
+                                base64.b64decode(
+                                    response['delta'])).decode('utf-8')
+                            audio_delta = {
+                                "event": "media",
+                                "streamSid": stream_sid,
+                                "media": {
+                                    "payload": audio_payload
                                 }
-                                await websocket.send_json(audio_delta)
-                            except Exception as e:
-                                print(f"Error processing audio data: {e}")
-                    except Exception as e:
-                        print(f"Error processing OpenAI message: {e}")
+                            }
+                            await websocket.send_json(audio_delta)
+                        except Exception as e:
+                            print(f"Error processing audio data: {e}")
             except Exception as e:
                 print(f"Error in send_to_twilio: {e}")
 
@@ -172,7 +163,9 @@ async def send_initial_conversation_item(openai_ws):
                 "type":
                 "input_text",
                 "text":
-                ("Greet the user with 'Hello there! I am Darjans personal assistant. How can I help you today?'")
+                ("Greet the user with 'Hello there! I am an AI voice assistant powered by "
+                 "Twilio and the OpenAI Realtime API. You can ask me for facts, jokes, or "
+                 "anything you can imagine. How can I help you?'")
             }]
         }
     }
@@ -255,21 +248,6 @@ async def make_call(phone_number_to_call: str):
 async def log_call_sid(call_sid):
     """Log the call SID."""
     print(f"Call started with SID: {call_sid}")
-
-async def broadcast_transcript(message):
-    """Broadcast the transcript to all connected clients."""
-    data = {
-        "type": "transcript",
-        "text": message
-    }
-    
-    for connection in active_connections.copy():
-        try:
-            await connection.send_text(json.dumps(data))
-            print(f"Sent transcript: {message}")
-        except Exception as e:
-            print(f"Error sending to client: {e}")
-            active_connections.remove(connection)
 
 
 if __name__ == "__main__":

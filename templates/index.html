@@ -86,44 +86,12 @@
         <div class="form-group">
             <h2>Call Transcript</h2>
             <div id="transcript">
+                <em>Transcript will appear here during the call...</em>
             </div>
         </div>
     </div>
 
     <script>
-        let socket = null;
-        const transcript = document.getElementById('transcript');
-        
-        function connectWebSocket() {
-            if (socket) {
-                socket.close();
-            }
-            
-            // Always use secure WebSocket when page is loaded over HTTPS
-            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${wsProtocol}//${window.location.host}/media-stream`;
-            console.log('Connecting to WebSocket:', wsUrl);
-            socket = new WebSocket(wsUrl);
-            
-            socket.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                console.log('=== RECEIVED WEBSOCKET MESSAGE ===');
-                console.log(JSON.stringify(data, null, 2));
-                console.log('================================');
-                
-                if (data.type === 'transcript') {
-                    transcript.innerHTML += `<p>${data.text}</p>`;
-                    transcript.scrollTop = transcript.scrollHeight;
-                }
-            };
-            
-            socket.onerror = function(error) {
-                console.error('WebSocket error:', error);
-            };
-            
-            return socket;
-        }
-        
         async function makeCall(event) {
             event.preventDefault();
             const phone = document.getElementById('phone').value;
@@ -142,9 +110,6 @@
             submitButton.textContent = 'Initiating Call...';
             
             try {
-                // Connect WebSocket before making the call
-                connectWebSocket();
-                
                 const response = await fetch('/make_call', {
                     method: 'POST',
                     headers: {
@@ -158,14 +123,12 @@
                 
                 const result = await response.json();
                 if (response.ok) {
-                    transcript.innerHTML += `<p><em>${result.message}</em></p>`;
+                    alert(result.message);
                 } else {
-                    transcript.innerHTML += `<p style="color: red;"><em>Error: ${result.error}</em></p>`;
+                    alert('Error: ' + result.error);
                 }
-                transcript.scrollTop = transcript.scrollHeight;
             } catch (error) {
-                transcript.innerHTML += `<p style="color: red;"><em>Error making call: ${error}</em></p>`;
-                transcript.scrollTop = transcript.scrollHeight;
+                alert('Error making call: ' + error);
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = 'Make Call';
