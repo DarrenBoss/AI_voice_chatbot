@@ -101,34 +101,23 @@ async def handle_media_stream(websocket: WebSocket):
             nonlocal stream_sid
             try:
                 async for message in websocket.iter_text():
-                    try:
-                        data = json.loads(message)
-                        # Important events that aren't media
-                        if data['event'] != 'media':
-                            print("\n=== RECEIVED FROM TWILIO ===")
-                            print(json.dumps(data, indent=2))
-                            print("==============================\n")
-                            
-                        if data['event'] == 'media' and openai_ws.open:
-                            audio_append = {
-                                "type": "input_audio_buffer.append",
-                                "audio": data['media']['payload']
-                            }
-                            await openai_ws.send(json.dumps(audio_append))
-                        elif data['event'] == 'start':
-                            stream_sid = data['start']['streamSid']
-                            print(f"Incoming stream has started {stream_sid}")
-                    except Exception as e:
-                        print(f"Error processing Twilio message: {e}")
-                        continue
+                    data = json.loads(message)
+                    print("\n=== RECEIVED FROM TWILIO ===")
+                    print(json.dumps(data, indent=2))
+                    print("==============================\n")
+                    if data['event'] == 'media' and openai_ws.open:
+                        audio_append = {
+                            "type": "input_audio_buffer.append",
+                            "audio": data['media']['payload']
+                        }
+                        await openai_ws.send(json.dumps(audio_append))
+                    elif data['event'] == 'start':
+                        stream_sid = data['start']['streamSid']
+                        print(f"Incoming stream has started {stream_sid}")
             except WebSocketDisconnect:
                 print("Client disconnected.")
-            except Exception as e:
-                print(f"Error in receive_from_twilio: {e}")
-            finally:
                 if openai_ws.open:
                     await openai_ws.close()
-                print("Twilio receive loop ended")
 
         async def send_to_twilio():
             """Receive events from the OpenAI Realtime API, send audio back to Twilio."""
@@ -137,13 +126,16 @@ async def handle_media_stream(websocket: WebSocket):
                 async for openai_message in openai_ws:
                     try:
                         response = json.loads(openai_message)
-                        # Log non-audio messages
-                        if response['type'] != 'response.audio.delta':
-                            print("\n=== RECEIVED OPENAI MESSAGE ===")
-                            print(json.dumps(response, indent=2))
-                            print("==============================\n")
+                        print("\n=== RECEIVED OPENAI MESSAGE ===")
+                        #print(json.dumps(response, indent=2)) 
+                        print(response["type"])
+                        print("==============================\n")
                         
                         if response['type'] == 'response.audio_transcript.delta':
+                            #print("\n=== USER SPEAKING ===")
+                            #print(response['delta']['text'])
+                            #print(json.dumps(response, indent=2))
+                            #print("===================\n")
                             await broadcast_transcript(f"User: {response['delta']['text']}")
                         elif response['type'] == 'response.content.text' and 'text' in response:
                             print("\n=== AI SPEAKING ===")
@@ -165,14 +157,10 @@ async def handle_media_stream(websocket: WebSocket):
                                 await websocket.send_json(audio_delta)
                             except Exception as e:
                                 print(f"Error processing audio data: {e}")
-                                continue
                     except Exception as e:
                         print(f"Error processing OpenAI message: {e}")
-                        continue
             except Exception as e:
                 print(f"Error in send_to_twilio: {e}")
-            finally:
-                print("OpenAI receive loop ended")
 
         await asyncio.gather(receive_from_twilio(), send_to_twilio())
 
