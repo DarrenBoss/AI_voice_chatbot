@@ -127,7 +127,7 @@ async def handle_media_stream(websocket: WebSocket):
                     try:
                         response = json.loads(openai_message)
                         print("\n=== RECEIVED OPENAI MESSAGE ===")
-                        #print(json.dumps(response, indent=2))
+                        #print(json.dumps(response, indent=2)) 
                         print(response["type"])
                         print("==============================\n")
                         
