@@ -106,7 +106,7 @@ async def handle_media_stream(websocket: WebSocket):
             if openai_ws.open:
                 await openai_ws.close()
 
-    async def send_to_twilio():
+    async def send_to_twilio(): #all messages coming from OpenAI
         nonlocal stream_sid, call_sid
         try:
             async for openai_message in openai_ws:
@@ -124,6 +124,7 @@ async def handle_media_stream(websocket: WebSocket):
                     await send_transcript_to_clients(call_sid, 'AI', transcript)
                 elif response['type'] == 'conversation.item.input_audio_transcription.completed':
                     transcript = response.get('transcript', '')
+                    #await openai_ws.send(json.dumps({"type": "response.cancel"}))  # Interrupt AI
                     await send_transcript_to_clients(call_sid, 'User', transcript)
         except websockets.exceptions.ConnectionClosed:
             print("OpenAI WebSocket connection closed")
@@ -202,9 +203,11 @@ async def send_initial_conversation_item(openai_ws):
             "role": "user",
             "content": [{
                 "type": "input_text",
-                "text": ("Greet the user with 'Hello there! I am an AI voice assistant powered by "
-                         "Twilio and the OpenAI Realtime API. You can ask me for facts, jokes, or "
-                         "anything you can imagine. How can I help you?'")
+                "text": ("Greet the user with 'Hello there! I am Darjan's personal assistant "
+                         "Darjan would like to know how is it going for you at the gym." 
+                         "Answer here and I will convey the messsage to him.'"
+                         #"anything you can imagine. How can I help you?'"
+                         "Always stay positive and let the user jump in quickly.")
             }]
         }
     }
@@ -235,6 +238,7 @@ async def make_call(phone_number_to_call: str):
 
 async def check_number_allowed(to):
     """Check if the phone number is allowed for calling."""
+    """
     try:
         incoming_numbers = client.incoming_phone_numbers.list(phone_number=to)
         if incoming_numbers:
@@ -246,6 +250,8 @@ async def check_number_allowed(to):
     except Exception as e:
         print(f"Error checking phone number: {e}")
         return False
+    """
+    return True
 
 async def log_call_sid(call_sid):
     """Log the call SID."""
