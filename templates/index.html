@@ -92,19 +92,6 @@
     </div>
 
     <script>
-        // Function to handle WebSocket connection for transcripts
-        function connectWebSocket(callSid) {
-            const ws = new WebSocket(`wss://${window.location.host}/media-stream`);
-            
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                if (data.event === 'transcript') {
-                    const transcriptDiv = document.getElementById('transcript');
-                    transcriptDiv.innerHTML += `<p>${data.text}</p>`;
-                    transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
-                }
-            };
-        }
         async function makeCall(event) {
             event.preventDefault();
             const phone = document.getElementById('phone').value;
