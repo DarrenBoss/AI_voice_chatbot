@@ -58,6 +58,18 @@
             margin-top: 5px;
             font-size: 14px;
         }
+        #transcript p {
+            margin: 5px 0;
+        }
+        #transcript p strong {
+            font-weight: bold;
+        }
+        #transcript p:has(strong:contains('AI')) {
+            color: blue;
+        }
+        #transcript p:has(strong:contains('User')) {
+            color: green;
+        }
     </style>
 </head>
 <body>
@@ -92,48 +104,78 @@
     </div>
 
     <script>
-        async function makeCall(event) {
-            event.preventDefault();
-            const phone = document.getElementById('phone').value;
-            const instructions = document.getElementById('instructions').value;
-            const submitButton = document.getElementById('submitButton');
-            const phoneError = document.getElementById('phoneError');
-            
-            // Basic validation
-            if (!phone.match(/\+[0-9]{10,15}/)) {
-                phoneError.textContent = 'Please enter a valid phone number starting with + and 10-15 digits';
-                return;
-            }
-            
-            phoneError.textContent = '';
-            submitButton.disabled = true;
-            submitButton.textContent = 'Initiating Call...';
-            
-            try {
-                const response = await fetch('/make_call', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        phone_number: phone,
-                        instructions: instructions
-                    })
-                });
-                
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                } else {
-                    alert('Error: ' + result.error);
+        <script>
+            async function makeCall(event) {
+                event.preventDefault();
+                const phone = document.getElementById('phone').value;
+                const instructions = document.getElementById('instructions').value;
+                const submitButton = document.getElementById('submitButton');
+                const phoneError = document.getElementById('phoneError');
+
+                // Basic validation
+                if (!phone.match(/\+[0-9]{10,15}/)) {
+                    phoneError.textContent = 'Please enter a valid phone number starting with + and 10-15 digits';
+                    return;
                 }
-            } catch (error) {
-                alert('Error making call: ' + error);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Make Call';
+
+                phoneError.textContent = '';
+                submitButton.disabled = true;
+                submitButton.textContent = 'Initiating Call...';
+
+                try {
+                    const response = await fetch('/make_call', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            phone_number: phone,
+                            instructions: instructions
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert(result.message);
+                        const callSid = result.call_sid;
+                        connectTranscriptWebSocket(callSid);
+                    } else {
+                        alert('Error: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Error making call: ' + error);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Make Call';
+                }
             }
-        }
+
+            function connectTranscriptWebSocket(callSid) {
+                const ws = new WebSocket(`wss://${window.location.host}/transcript-stream?call_sid=${callSid}`);
+                const transcriptDiv = document.getElementById('transcript');
+
+                ws.onopen = function() {
+                    console.log('Transcript WebSocket connected');
+                    transcriptDiv.innerHTML = '';  // Clear initial message
+                };
+
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    const newTranscript = `<p><strong>${data.speaker}:</strong> ${data.transcript}</p>`;
+                    transcriptDiv.innerHTML += newTranscript;
+                    transcriptDiv.scrollTop = transcriptDiv.scrollHeight;  // Auto-scroll to bottom
+                };
+
+                ws.onclose = function() {
+                    console.log('Transcript WebSocket closed');
+                    transcriptDiv.innerHTML += '<p><em>Call ended or disconnected</em></p>';
+                };
+
+                ws.onerror = function(error) {
+                    console.error('Transcript WebSocket error:', error);
+                };
+            }
+        </script>
     </script>
 </body>
 </html>
