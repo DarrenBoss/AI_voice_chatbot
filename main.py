@@ -64,6 +64,7 @@ if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and PHONE_NUMBER_FROM
 
 # Initialize Twilio client
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+logging.getLogger('twilio.http_client').setLevel(logging.WARNING)
 
 
 class CallRequest(BaseModel):
