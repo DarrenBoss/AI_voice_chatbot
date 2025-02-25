@@ -21,11 +21,10 @@ from twilio.rest import Client
 
 load_dotenv()
 
-logging.basicConfig(level=logging.DEBUG, force=True)
+logging.basicConfig(level=logging.info)
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-logger.debug("Logging is set up")
-logger.info("This should appear too")
+
+
 
 # Configuration
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
@@ -88,14 +87,11 @@ async def initiate_call(call_request: CallRequest):
 @app.websocket('/media-stream')
 async def handle_media_stream(websocket: WebSocket):
     """Handle WebSocket connections between Twilio and OpenAI."""
-    print("Client connected")
     print(f"WebSocket scope: {websocket.scope}")
     logger.info("Client connected to media stream")
-    handler.flush()
     await websocket.accept()
     print("WebSocket accepted")
-    logger.debug("WebSocket accepted successfully")
-    handler.flush()
+    logger.info("WebSocket accepted successfully")
     
     
     async with connect(
@@ -111,11 +107,9 @@ async def handle_media_stream(websocket: WebSocket):
         async def receive_from_twilio():
             """Receive audio data from Twilio and send it to the OpenAI Realtime API."""
             nonlocal stream_sid
-            logger.debug("Receive from twilio")
             try:
                 async for message in websocket.iter_text():
                     data = json.loads(message)
-                    print(f"Received message from Twilio: {data}")
                     if data['event'] == 'media' and openai_ws.open:
                         audio_append = {
                             "type": "input_audio_buffer.append",
@@ -133,15 +127,15 @@ async def handle_media_stream(websocket: WebSocket):
         async def send_to_twilio():
             """Receive events from the OpenAI Realtime API, send audio back to Twilio."""
             nonlocal stream_sid
-            logger.debug("Send to twilio")
             try:
                 async for openai_message in openai_ws:
                     response = json.loads(openai_message)
-                    print("TUUUUUUUUUUUUUU")
-                    if response['type'] in LOG_EVENT_TYPES:
-                        print(f"Received event: {response['type']}", response)
-                    if response['type'] == 'session.updated':
-                        print("Session updated successfully:", response)
+                    if "transcript" in response:
+                        logger.debug(response)
+                    #if response['type'] in LOG_EVENT_TYPES:
+                    #    print(f"Received event: {response['type']}", response)
+                    #if response['type'] == 'session.updated':
+                    #    print("Session updated successfully:", response)
                     if response[
                             'type'] == 'response.audio.delta' and response.get(
                                 'delta'):
@@ -198,6 +192,9 @@ async def initialize_session(openai_ws):
             },
             "input_audio_format": "g711_ulaw",
             "output_audio_format": "g711_ulaw",
+            "input_audio_transcription": {
+                "model": "whisper-1"
+            },
             "voice": VOICE,
             "instructions": SYSTEM_MESSAGE,
             "modalities": ["text", "audio"],
