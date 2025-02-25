@@ -156,7 +156,7 @@ async def transcript_stream(websocket: WebSocket):
 
     try:
         while True:
-            await websocket.receive_text()  # Keep connection alive
+            await websocket.receive_text()  # Keep connection alive fff
     except WebSocketDisconnect:
         transcript_clients[call_sid].remove(websocket)
         if not transcript_clients[call_sid]:
