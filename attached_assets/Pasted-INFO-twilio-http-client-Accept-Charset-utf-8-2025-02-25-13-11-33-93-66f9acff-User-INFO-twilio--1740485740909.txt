@@ -1,0 +1,65 @@
+INFO:twilio.http_client:Accept-Charset : utf-8
+2025-02-25 13:11:33.93
+66f9acff
+User
+INFO:twilio.http_client:Accept : application/json
+2025-02-25 13:11:33.93
+66f9acff
+User
+INFO:twilio.http_client:-- END Twilio API Request --
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:Response Status Code: 200
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:Response Headers: {'Content-Type': 'application/json;charset=utf-8', 'Content-Length': '222', 'Connection': 'keep-alive', 'Date': 'Tue, 25 Feb 2025 12:11:34 GMT', 'Content-Encoding': 'gzip', 'Twilio-Concurrent-Requests': '1', 'Twilio-Request-Id': 'RQ82e050e754a41e95d97ebdf858b89599', 'Twilio-Request-Duration': '0.142', 'X-Home-Region': 'us1', 'X-API-Domain': 'api.twilio.com', 'Strict-Transport-Security': 'max-age=31536000', 'Vary': 'Accept-Encoding, Origin', 'X-Cache': 'Miss from cloudfront', 'Via': '1.1 9b7d7011177b24785643c881028bb8ea.cloudfront.net (CloudFront)', 'X-Amz-Cf-Pop': 'ORD58-P4', 'X-Amz-Cf-Id': 'ltdKEoLC2s__dQz7CoyFuOrYqB3_EH2LrlHrtksMAI6JTeha3cmwVA==', 'X-Powered-By': 'AT-5000', 'X-Shenanigans': 'none'}
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:-- BEGIN Twilio API Request --
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:GET Request: https://api.twilio.com/2010-04-01/Accounts/ACbcac03c2fa8f8e2c5c92a1fa054895d6/OutgoingCallerIds.json?PhoneNumber=%2B46734468955
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:Query Params: {'PhoneNumber': '+46734468955'}
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:Headers:
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:User-Agent : twilio-python/8.13.0 (Linux x86_64) Python/3.11.10
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:X-Twilio-Client : python-8.13.0
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:Accept-Charset : utf-8
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:Accept : application/json
+2025-02-25 13:11:34.18
+66f9acff
+User
+INFO:twilio.http_client:-- END Twilio API Request --
+2025-02-25 13:11:34.28
+66f9acff
+User
+INFO:twilio.http_client:Response Status Code: 200
+2025-02-25 13:11:34.28
+66f9acff
+User
+INFO:twilio.http_client:Response Headers: {'Content-Type': 'application/json; charset=utf-8', 'Content-Length': '796', 'Connection': 'keep-alive', 'Date': 'Tue, 25 Feb 2025 12:11:34 GMT', 'X-API-Domain': 'api.twilio.com', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Accept, Authorization, Content-Type, If-Match, If-Modified-Since, If-None-Match, If-Unmodified-Since, Idempotency-Key', 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS', 'Access-Control-Expose-Headers': 'ETag', 'Twilio-Request-Id': 'RQ741920bb1c0cdd332a94ee2710912a56', 'Twilio-Request-Duration': '0.024', 'Twilio-Concurrent-Requests': '1', 'X-Shenanigans': 'none', 'X-Powered-By': 'AT-5000', 'X-Home-Region': 'us1', 'X-Cache': 'Miss from cloudfront', 'Via': '1.1 9b7d7011177b24785643c881028bb8ea.cloudfront.net (CloudFront)', 'X-Amz-Cf-Pop': 'ORD58-P4', 'X-Amz-Cf-Id': 'ZUbk6VyigV_PALe4uQELbWkAUX25k8zK3bZNa90rC-ocELH-hX4ILw=='}
+2025-02-25 13:11:34.28
+66f9acff
+User
+INFO:twilio.http_client:-- BEGIN Twilio API Request --

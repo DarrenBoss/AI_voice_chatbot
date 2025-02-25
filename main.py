@@ -21,7 +21,7 @@ from twilio.rest import Client
 
 load_dotenv()
 
-logging.basicConfig(level=logging.info)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 
@@ -31,7 +31,12 @@ TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 PHONE_NUMBER_FROM = os.getenv('PHONE_NUMBER_FROM')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-raw_domain = os.getenv('DOMAIN', '')
+#raw_domain = os.getenv('DOMAIN', '')
+is_deployment = os.getenv('REPLIT_DEPLOYMENT') == '1'
+if is_deployment:
+    raw_domain = os.getenv('DOMAIN', '')  # deployment domain
+else:
+    raw_domain = "chat-bot-darjanbosnjak.replit.co"  # test environment 
 DOMAIN = re.sub(r'(^\w+:|^)\/\/|\/+$', '',raw_domain)  # Strip protocols and trailing slashes from DOMAIN
 
 
@@ -131,7 +136,7 @@ async def handle_media_stream(websocket: WebSocket):
                 async for openai_message in openai_ws:
                     response = json.loads(openai_message)
                     if "transcript" in response:
-                        logger.debug(response)
+                        logger.info(response)
                     #if response['type'] in LOG_EVENT_TYPES:
                     #    print(f"Received event: {response['type']}", response)
                     #if response['type'] == 'session.updated':
