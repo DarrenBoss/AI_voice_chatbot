@@ -32,7 +32,7 @@ TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 PHONE_NUMBER_FROM = os.getenv('PHONE_NUMBER_FROM')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 raw_domain = os.getenv('DOMAIN', '')
-DOMAIN = re.sub(r'(^\w+:|^)\/\/|\/+$', '',raw_domain)  # Strip protocols and trailing slashes from DOMAIN
+DOMAIN = re.sub(r'(^\w+:|^)\/\/|\/+$', '',raw_domain)  # Strip protocols and trailing slashes from DOMAIN; remove this
 
 
 PORT = int(os.getenv('PORT', 8000))
