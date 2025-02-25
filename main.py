@@ -21,7 +21,7 @@ from twilio.rest import Client
 
 load_dotenv()
 
-logging.basicConfig(level=logging.info)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 
