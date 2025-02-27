@@ -1,16 +1,15 @@
-import argparse
 import asyncio
 import base64
 import json
+import logging
 import os
 import re
-import logging
+
 import uvicorn
 import websockets
-
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from twilio.rest import Client
@@ -116,21 +115,9 @@ async def handle_media_stream(websocket: WebSocket):
             async for openai_message in openai_ws:
                 response = json.loads(openai_message)
 
-                # Handle new assistant message creation
-                if response['type'] == 'conversation.item.created':
-                    if response['item']['role'] == 'assistant':
-                        last_assistant_item_id = response['item']['id']
-                        current_audio_duration_ms = 0  # Reset duration for new message
-
-                # Process audio deltas and accumulate duration
-                elif response['type'] == 'response.audio.delta' and response.get('delta'):
-                    # Calculate duration of the audio chunk
-                    audio_bytes = base64.b64decode(response['delta'])
-                    number_of_samples = len(audio_bytes) // 2  # 16-bit PCM
-                    duration_ms = (number_of_samples / 24000) * 1000  # 24kHz sample rate
-                    current_audio_duration_ms += duration_ms
-                    # Send audio to Twilio
-                    audio_payload = base64.b64encode(audio_bytes).decode('utf-8')
+                if response["type"] == "response.audio.delta" and response.get("delta"):
+                    audio_chunk = base64.b64decode(response["delta"])
+                    audio_payload = base64.b64encode(audio_chunk).decode("utf-8")
                     audio_delta = {
                         "event": "media",
                         "streamSid": stream_sid,
@@ -138,30 +125,19 @@ async def handle_media_stream(websocket: WebSocket):
                     }
                     await websocket.send_json(audio_delta)
 
-                # Handle user speech interruption
-                elif response['type'] == 'input_audio_buffer.speech_started':
-                    # Send response.cancel to stop the AI
+                elif response["type"] == "input_audio_buffer.speech_started":
+                    # Cancel the current response cleanly
                     cancel_message = {"type": "response.cancel"}
                     await openai_ws.send(json.dumps(cancel_message))
-                    # Trim the assistant's message if it exists
-                    if last_assistant_item_id:
-                        truncate_message = {
-                            "type": "conversation.item.truncate",
-                            "item_id": last_assistant_item_id,
-                            "content_index": 0,  # First content part (audio)
-                            "audio_end_ms": int(current_audio_duration_ms)
-                        }
-                        await openai_ws.send(json.dumps(truncate_message))
+                    # Rely on server-side turn detection; no manual truncation
 
-                # Handle completed AI transcripts
-                elif response['type'] == 'response.audio_transcript.done':
-                    transcript = response.get('transcript', '')
-                    await send_transcript_to_clients(call_sid, 'AI', transcript)
+                elif response["type"] == "response.audio_transcript.done":
+                    transcript = response.get("transcript", "")
+                    await send_transcript_to_clients(call_sid, "AI", transcript)
 
-                # Handle completed user transcripts
-                elif response['type'] == 'conversation.item.input_audio_transcription.completed':
-                    transcript = response.get('transcript', '')
-                    await send_transcript_to_clients(call_sid, 'User', transcript)
+                elif response["type"] == "conversation.item.input_audio_transcription.completed":
+                    transcript = response.get("transcript", "")
+                    await send_transcript_to_clients(call_sid, "User", transcript)
 
         except websockets.exceptions.ConnectionClosed:
             print("OpenAI WebSocket connection closed")
