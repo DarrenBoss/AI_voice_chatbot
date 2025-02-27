@@ -274,12 +274,4 @@ async def log_call_sid(call_sid):
 
 # Main execution
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser(description="Run the Twilio AI voice assistant server.")
-    #parser.add_argument('--call', required=True, help="The phone number to call, e.g., '--call=+18005551212'")
-    #args = parser.parse_args()
-    #phone_number = args.call
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(make_call(phone_number))
-
     uvicorn.run(app, host="0.0.0.0", port=PORT)
