@@ -234,10 +234,6 @@ async def make_call(phone_number_to_call: str):
     if not phone_number_to_call:
         raise ValueError("Please provide a phone number to call.")
 
-    is_allowed = await check_number_allowed(phone_number_to_call)
-    if not is_allowed:
-        raise ValueError(f"The number {phone_number_to_call} is not recognized.")
-
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
         f'<Response><Connect><Stream url="wss://{DOMAIN}/media-stream" /></Connect></Response>'
@@ -250,23 +246,6 @@ async def make_call(phone_number_to_call: str):
     )
     await log_call_sid(call.sid)
     return call
-
-async def check_number_allowed(to):
-    """Check if the phone number is allowed for calling."""
-    """
-    try:
-        incoming_numbers = client.incoming_phone_numbers.list(phone_number=to)
-        if incoming_numbers:
-            return True
-        outgoing_caller_ids = client.outgoing_caller_ids.list(phone_number=to)
-        if outgoing_caller_ids:
-            return True
-        return False
-    except Exception as e:
-        print(f"Error checking phone number: {e}")
-        return False
-    """
-    return True
 
 async def log_call_sid(call_sid):
     """Log the call SID."""
