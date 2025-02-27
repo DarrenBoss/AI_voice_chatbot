@@ -47,6 +47,7 @@ if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and PHONE_NUMBER_FROM and OPENA
 
 # Initialize Twilio client
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+logging.getLogger('twilio').setLevel(logging.DEBUG)
 
 # Dictionary to track transcript clients by call_sid
 transcript_clients = {}  # {call_sid: [WebSocket, ...]}
