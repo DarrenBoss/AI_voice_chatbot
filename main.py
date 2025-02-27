@@ -7,6 +7,7 @@ import re
 import logging
 import uvicorn
 import websockets
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -242,7 +243,6 @@ async def send_initial_conversation_item(openai_ws):
                 "text": ("Greet the user with 'Hello there! I am Darjan's personal assistant "
                          "Darjan would like to know how is it going for you at the gym." 
                          "Answer here and I will convey the messsage to him.'"
-                         #"anything you can imagine. How can I help you?'"
                          "Always stay positive and let the user jump in quickly.")
             }]
         }
@@ -295,14 +295,10 @@ async def log_call_sid(call_sid):
 
 # Main execution
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the Twilio AI voice assistant server.")
-    parser.add_argument('--call', required=True, help="The phone number to call, e.g., '--call=+18005551212'")
-    args = parser.parse_args()
-    phone_number = args.call
-
-    print('Our recommendation is to always disclose the use of AI for outbound or inbound calls.\n'
-          'Reminder: All of the rules of TCPA apply even if a call is made by AI.\n'
-          'Check with your counsel for legal and compliance advice.')
+    #parser = argparse.ArgumentParser(description="Run the Twilio AI voice assistant server.")
+    #parser.add_argument('--call', required=True, help="The phone number to call, e.g., '--call=+18005551212'")
+    #args = parser.parse_args()
+    #phone_number = args.call
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(make_call(phone_number))
