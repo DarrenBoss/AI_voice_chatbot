@@ -127,15 +127,18 @@ async def handle_media_stream(websocket: WebSocket):
 
                 elif response["type"] == "input_audio_buffer.speech_started":
                     # Cancel the current response cleanly
+                    logger.info("Cancelling current response")
                     cancel_message = {"type": "response.cancel"}
                     await openai_ws.send(json.dumps(cancel_message))
                     # Rely on server-side turn detection; no manual truncation
 
                 elif response["type"] == "response.audio_transcript.done":
+                    logger.info("Transcript received")
                     transcript = response.get("transcript", "")
                     await send_transcript_to_clients(call_sid, "AI", transcript)
 
                 elif response["type"] == "conversation.item.input_audio_transcription.completed":
+                    logger.info("transcript received")
                     transcript = response.get("transcript", "")
                     await send_transcript_to_clients(call_sid, "User", transcript)
 
