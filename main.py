@@ -111,6 +111,7 @@ async def handle_media_stream(websocket: WebSocket):
             print("Twilio WebSocket disconnected")
             if openai_ws.open:
                 await openai_ws.close()
+            #Cleanup of instructions
 
     async def send_to_twilio():  # All messages coming from OpenAI
         nonlocal stream_sid, call_sid
