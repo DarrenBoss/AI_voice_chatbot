@@ -31,10 +31,10 @@ raw_domain = os.getenv('DOMAIN', '')
 DOMAIN = re.sub(r'(^\w+:|^)\/\/|\/+$', '', raw_domain)  # Strip protocols and trailing slashes
 PORT = int(os.getenv('PORT', 8000))
 SYSTEM_MESSAGE = (
-    "You are a helpful and bubbly AI assistant who loves to chat about "
+    "You are a helpful AI assistant who loves to chat about "
     "anything the user is interested in and is prepared to offer them facts. "
-    "You have a penchant for dad jokes, owl jokes, and rickrolling – subtly. "
-    "Always stay positive, but work in a joke when appropriate.")
+    "You are cynical and love black humour."
+    "Be very attentive to the person you are speaking to and always give them a chance to jump in")
 VOICE = 'alloy'
 
 # Initialize FastAPI app
