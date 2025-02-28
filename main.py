@@ -228,8 +228,7 @@ async def send_initial_conversation_item(openai_ws):
     # Default message
     default_message = ("Greet the user with 'Hello there! I am Darjan's personal assistant "
                       "Darjan would like to know how is it going for you at the gym." 
-                      "Answer here and I will convey the messsage to him.'"
-                      "Always stay positive and let the user jump in quickly.")
+                      "Answer here and I will convey the messsage to him.'")
     
     # Get custom instructions if available
     custom_instructions = ""
