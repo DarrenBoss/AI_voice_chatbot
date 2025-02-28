@@ -94,12 +94,18 @@ async def handle_media_stream(websocket: WebSocket):
                 if data['event'] == 'start':
                     stream_sid = data['start']['streamSid']
                     call_sid = data['start']['callSid']  # Extract call_sid
-                    print(f"Incoming stream started {stream_sid} for call {call_sid}")
+                    logger.info(f"Incoming stream started {stream_sid} for call {call_sid}")
                     
                     # Store call_sid for later retrieval in send_initial_conversation_item
                     # This ensures we can access the correct instructions
                     if call_sid not in transcript_clients:
                         transcript_clients[call_sid] = []
+                    
+                    # Log if we have instructions for this call
+                    if f"{call_sid}_instructions" in transcript_clients:
+                        logger.info(f"Found instructions for call {call_sid}: {transcript_clients[f'{call_sid}_instructions']}")
+                    else:
+                        logger.info(f"No instructions found for call {call_sid}")
                         
                 elif data['event'] == 'media' and openai_ws.open:
                     audio_append = {
@@ -217,11 +223,14 @@ async def initialize_session(openai_ws):
 
 async def send_initial_conversation_item(openai_ws):
     """Send the initial greeting message to OpenAI."""
-    # Get call SID from stream SID (which should be available in the WebSocket context)
+    # Get call_sid from the media-stream handler context
     call_sid = None
-    for sid in transcript_clients:
-        if isinstance(sid, str) and sid.endswith("_instructions"):
-            call_sid = sid.replace("_instructions", "")
+    
+    # Find the active call_sid from the media stream which should have been set
+    for ws_key in list(transcript_clients.keys()):
+        if isinstance(ws_key, str) and "_instructions" in ws_key and transcript_clients[ws_key]:
+            call_sid = ws_key.replace("_instructions", "")
+            logger.info(f"Found active call with SID: {call_sid}")
             break
     
     # Default message
@@ -231,8 +240,13 @@ async def send_initial_conversation_item(openai_ws):
     
     # Get custom instructions if available
     custom_instructions = ""
-    if call_sid and call_sid + "_instructions" in transcript_clients:
-        custom_instructions = transcript_clients[call_sid + "_instructions"]
+    instructions_key = f"{call_sid}_instructions" if call_sid else None
+    
+    if instructions_key and instructions_key in transcript_clients:
+        custom_instructions = transcript_clients[instructions_key]
+        logger.info(f"Using custom instructions for call {call_sid}: {custom_instructions}")
+    else:
+        logger.info(f"No custom instructions found for call {call_sid}, using default")
     
     # Use custom instructions if provided, otherwise use default
     message_text = custom_instructions if custom_instructions else default_message
@@ -270,8 +284,12 @@ async def make_call(phone_number_to_call: str, instructions: str = ""):
     # Store instructions in transcript_clients for use in send_initial_conversation_item
     if call.sid not in transcript_clients:
         transcript_clients[call.sid] = []
-    transcript_clients[call.sid + "_instructions"] = instructions
     
+    # Clear any previous instructions and store new ones
+    instructions_key = f"{call.sid}_instructions"
+    transcript_clients[instructions_key] = instructions
+    
+    logger.info(f"Stored instructions for call {call.sid}: {instructions}")
     await log_call_sid(call.sid)
     return call
 
