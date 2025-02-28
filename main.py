@@ -66,11 +66,10 @@ async def index_page(request: Request):
 async def initiate_call(call_request: CallRequest):
     """Initiate a call and return the call_sid."""
     try:
-        if call_request.instructions:
-            global SYSTEM_MESSAGE
-            SYSTEM_MESSAGE = call_request.instructions
+        # Store instructions but don't modify SYSTEM_MESSAGE
+        instructions = call_request.instructions
 
-        call = await make_call(call_request.phone_number)
+        call = await make_call(call_request.phone_number, instructions)
         return {
             "message": f"Call initiated to {call_request.phone_number}",
             "call_sid": call.sid
@@ -96,6 +95,12 @@ async def handle_media_stream(websocket: WebSocket):
                     stream_sid = data['start']['streamSid']
                     call_sid = data['start']['callSid']  # Extract call_sid
                     print(f"Incoming stream started {stream_sid} for call {call_sid}")
+                    
+                    # Store call_sid for later retrieval in send_initial_conversation_item
+                    # This ensures we can access the correct instructions
+                    if call_sid not in transcript_clients:
+                        transcript_clients[call_sid] = []
+                        
                 elif data['event'] == 'media' and openai_ws.open:
                     audio_append = {
                         "type": "input_audio_buffer.append",
@@ -213,6 +218,27 @@ async def initialize_session(openai_ws):
 
 async def send_initial_conversation_item(openai_ws):
     """Send the initial greeting message to OpenAI."""
+    # Get call SID from stream SID (which should be available in the WebSocket context)
+    call_sid = None
+    for sid in transcript_clients:
+        if isinstance(sid, str) and sid.endswith("_instructions"):
+            call_sid = sid.replace("_instructions", "")
+            break
+    
+    # Default message
+    default_message = ("Greet the user with 'Hello there! I am Darjan's personal assistant "
+                      "Darjan would like to know how is it going for you at the gym." 
+                      "Answer here and I will convey the messsage to him.'"
+                      "Always stay positive and let the user jump in quickly.")
+    
+    # Get custom instructions if available
+    custom_instructions = ""
+    if call_sid and call_sid + "_instructions" in transcript_clients:
+        custom_instructions = transcript_clients[call_sid + "_instructions"]
+    
+    # Use custom instructions if provided, otherwise use default
+    message_text = custom_instructions if custom_instructions else default_message
+    
     initial_conversation_item = {
         "type": "conversation.item.create",
         "item": {
@@ -220,17 +246,14 @@ async def send_initial_conversation_item(openai_ws):
             "role": "user",
             "content": [{
                 "type": "input_text",
-                "text": ("Greet the user with 'Hello there! I am Darjan's personal assistant "
-                         "Darjan would like to know how is it going for you at the gym." 
-                         "Answer here and I will convey the messsage to him.'"
-                         "Always stay positive and let the user jump in quickly.")
+                "text": message_text
             }]
         }
     }
     await openai_ws.send(json.dumps(initial_conversation_item))
     await openai_ws.send(json.dumps({"type": "response.create"}))
 
-async def make_call(phone_number_to_call: str):
+async def make_call(phone_number_to_call: str, instructions: str = ""):
     """Make an outbound call using Twilio."""
     if not phone_number_to_call:
         raise ValueError("Please provide a phone number to call.")
@@ -245,6 +268,12 @@ async def make_call(phone_number_to_call: str):
         to=phone_number_to_call,
         twiml=outbound_twiml
     )
+    
+    # Store instructions in transcript_clients for use in send_initial_conversation_item
+    if call.sid not in transcript_clients:
+        transcript_clients[call.sid] = []
+    transcript_clients[call.sid + "_instructions"] = instructions
+    
     await log_call_sid(call.sid)
     return call
 
