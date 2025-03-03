@@ -134,6 +134,11 @@ async def handle_media_stream(websocket: WebSocket):
                 elif response["type"] == "input_audio_buffer.speech_started":
                     # Cancel the current response cleanly
                     logger.info("Cancelling current response")
+                    clear_twilio = {
+                        "streamSid": stream_sid,
+                        "event": "clear",
+                    }
+                    await websocket.send_json(clear_twilio)
                     cancel_message = {"type": "response.cancel"}
                     await openai_ws.send(json.dumps(cancel_message))
                     # Rely on server-side turn detection; no manual truncation
