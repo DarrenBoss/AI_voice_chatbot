@@ -32,9 +32,8 @@ DOMAIN = re.sub(r'(^\w+:|^)\/\/|\/+$', '', raw_domain)  # Strip protocols and tr
 PORT = int(os.getenv('PORT', 8000))
 SYSTEM_MESSAGE = (
     "You are a helpful AI assistant who loves to chat about "
-    "anything the user is interested in and is prepared to offer them facts. "
-    "You are cynical and love black humour."
-    "Be very attentive to the person you are speaking to and always give them a chance to jump in")
+    "anything the user is interested in and prepared to offer them facts."
+    "You are cynical and love black humour.")
 VOICE = 'alloy'
 
 # Initialize FastAPI app
@@ -100,6 +99,8 @@ async def handle_media_stream(websocket: WebSocket):
                     # This ensures we can access the correct instructions
                     if call_sid not in transcript_clients:
                         transcript_clients[call_sid] = []
+
+                    await initialize_session(openai_ws, call_sid)
                         
                 elif data['event'] == 'media' and openai_ws.open:
                     audio_append = {
@@ -111,13 +112,15 @@ async def handle_media_stream(websocket: WebSocket):
             print("Twilio WebSocket disconnected")
             if openai_ws.open:
                 await openai_ws.close()
-            #Cleanup of instructions
+              #Cleanup of instructions
+            if call_sid:
+                transcript_clients.pop(call_sid + "_instructions", None)
+                if call_sid in transcript_clients and not transcript_clients[call_sid]:
+                    del transcript_clients[call_sid]
+          
 
     async def send_to_twilio():  # All messages coming from OpenAI
         nonlocal stream_sid, call_sid
-        # Initialize variables to track the assistant's message and audio duration
-        last_assistant_item_id = None
-        current_audio_duration_ms = 0
         try:
             async for openai_message in openai_ws:
                 response = json.loads(openai_message)
@@ -166,7 +169,7 @@ async def handle_media_stream(websocket: WebSocket):
             ('OpenAI-Beta', 'realtime=v1')
         ]
     ) as openai_ws:
-        await initialize_session(openai_ws)
+        #await initialize_session(openai_ws)
         await asyncio.gather(receive_from_twilio(), send_to_twilio())
 
 @app.websocket('/transcript-stream')
@@ -203,7 +206,7 @@ async def send_transcript_to_clients(call_sid, speaker, transcript):
             except Exception as e:
                 print(f"Error sending transcript: {e}")
 
-async def initialize_session(openai_ws):
+async def initialize_session(openai_ws, call_sid):
     """Initialize the OpenAI session with settings and initial greeting."""
     session_update = {
         "type": "session.update",
@@ -219,26 +222,17 @@ async def initialize_session(openai_ws):
         }
     }
     await openai_ws.send(json.dumps(session_update))
-    await send_initial_conversation_item(openai_ws)
+    await send_initial_conversation_item(openai_ws, call_sid)
 
-async def send_initial_conversation_item(openai_ws):
+async def send_initial_conversation_item(openai_ws, call_sid):
     """Send the initial greeting message to OpenAI."""
-    # Get call SID from stream SID (which should be available in the WebSocket context)
-    call_sid = None
-    for sid in transcript_clients:
-        if isinstance(sid, str) and sid.endswith("_instructions"):
-            call_sid = sid.replace("_instructions", "")
-            break
-    
+   
     # Default message
     default_message = ("Greet the user with 'Hello there! I am Darjan's personal assistant "
-                      "Darjan would like to know how is it going for you at the gym." 
-                      "Answer here and I will convey the messsage to him.'")
+                      "You can send any message to Darjan or just chat with me'")
     
     # Get custom instructions if available
-    custom_instructions = ""
-    if call_sid and call_sid + "_instructions" in transcript_clients:
-        custom_instructions = transcript_clients[call_sid + "_instructions"]
+    custom_instructions = transcript_clients.get(call_sid + "_instructions", "")
     
     # Use custom instructions if provided, otherwise use default
     message_text = custom_instructions if custom_instructions else default_message
